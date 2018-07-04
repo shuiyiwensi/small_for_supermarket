@@ -6,7 +6,7 @@ from docx.shared import Pt
 from docx.shared import Cm
 import os
 import win32com.client
-
+import csv
 
 def get_fist_page_of_pdf(path):
     inputpdf = PdfFileReader(path)
@@ -29,7 +29,7 @@ def get_arabic_name(chinese_name, translatelist1):
 
 
 def build_dictionary():
-    workbook = load_workbook(filename='dictionary_csv/dictionary.xlsx', read_only=True)
+    workbook = load_workbook(filename='dictionary_csv/dictionary.csv', read_only=True)
     worksheet = workbook['Sheet1']
     translatelist1 = {}
     for row in worksheet.rows:
@@ -47,15 +47,66 @@ def build_chinese_name_to_ingredients_dictionary():
         chinese_name_to_row_number_dictionary[row[0].value] = row[6].value
     return chinese_name_to_ingredients_dictionary, chinese_name_to_row_number_dictionary
 
+def get_one_blank(fontsize,Chinese_Name,Output_Product_name,Output_Product_Ingredients_name,Our_Product_serving_size,Output_Production_date,Output_Expire_date,Out_Product_place):
+    content_in_one_blank='''
+    <td align="right">
+        <font size="'''+str(fontsize)+'''">
+        '''+Chinese_Name+'''<br>
+        '''+Output_Product_name+'''<br>
+        '''+Output_Product_Ingredients_name+'''<br>
+        '''+Our_Product_serving_size+'''<br>
+        '''+Output_Production_date+'''<br>
+        '''+Output_Expire_date+'''<br>
+        '''+Out_Product_place+'''<br>
+        </font>
+    </td>
+    '''
+    return content_in_one_blank
 
-def write2docx(Ingredients_length_in_one_row, Ingredients_length_in_one_col, Chinese_Name,Ingredients_name_list, product_weight_number, product_weight, product_time, expire_time, Chinese_ProductPlace):
+def generate_content_in_a_row(content_in_one_blank,number):
+    senctence=''''''
+    for i in range(number):
+        senctence=senctence+content_in_one_blank
+    message ='''
+    <td>
+    '''+senctence+'''
+    </td>
+    '''
+    return message
+
+def generate_content_from_row(one_row_content,number):
+    senctence = ''''''
+    for i in range(number):
+        senctence = senctence +'''<tr>
+        ''' + one_row_content + '''
+        </tr>
+        '''
+    return senctence
+
+
+def generate_html(senctence, margins_size):
+    message='''
+    <html> <head> <style>
+    @page {
+    size: 21cm 29.7cm;
+    margin: '''+str(margins_size)+'''mm '''+str(margins_size)+'''mm '''+str(margins_size)+'''mm '''+str(margins_size)+'''mm; /* change the margins as you want them to be. */
+    }
+    table
+    {font - family: arial, sans - serif;border - collapse: collapse;width: 100 %;}
+    td, th
+    {border: 1px solid  # dddddd;text - align: left;padding: 8px;}
+    </style> </head>
+    <body> <table>
+    '''+senctence+'''
+    </table> </body> </html>
+    '''
+    return message
+
+
+def write2html(Ingredients_length_in_one_row, Ingredients_length_in_one_col, Chinese_Name,Ingredients_name_list, product_weight_number, product_weight, product_time, expire_time, Chinese_ProductPlace):
     stringlength = 80
-    fontsize = 10
-    margins_size = 0.25
-    margins_size_top = margins_size
-    margins_size_bot = margins_size
-    margins_size_left = margins_size
-    margins_size_right = margins_size
+    fontsize = 2
+    margins_size = 0.1
     row_num = Ingredients_length_in_one_col
     col_num = Ingredients_length_in_one_row
     translatelist1 = build_dictionary()
@@ -87,40 +138,17 @@ def write2docx(Ingredients_length_in_one_row, Ingredients_length_in_one_col, Chi
     print(Output_Production_date.ljust(stringlength, ' '))
     print(Output_Expire_date.ljust(stringlength, ' '))
     print(Out_Product_place.ljust(stringlength, ' '))
+    content_in_one_blank=get_one_blank(fontsize,Chinese_Name,Output_Product_name,Output_Product_Ingredients_name,Our_Product_serving_size,Output_Production_date,Output_Expire_date,Out_Product_place)
+    one_row_content=generate_content_in_a_row(content_in_one_blank, Ingredients_length_in_one_row)
+    out_put_content=generate_content_from_row(one_row_content,Ingredients_length_in_one_col)
+    html_message=generate_html(out_put_content,margins_size)
+    temp_path='temp_word/' + Chinese_Name + '-' + product_weight_number + product_weight + '.html'
+    f = open(temp_path, 'w',encoding='utf-8')
+    f.write(html_message)
+    f.close()
 
-    document = Document()
-    sections = document.sections
-    for section in sections:
-        section.top_margin = Cm(margins_size_top)
-        section.bottom_margin = Cm(margins_size_bot)
-        section.left_margin = Cm(margins_size_left)
-        section.right_margin = Cm(margins_size_right)
-    table = document.add_table(rows=row_num, cols=col_num)
-    for row_num_index in range(row_num):
-        row_cells = table.rows[row_num_index].cells
-        for col_num_index in range(col_num):
-            p = row_cells[col_num_index].paragraphs[0]
-            p.add_run(Chinese_Name + '\n').font.size = Pt(fontsize)
-            p.add_run(Output_Product_name + '\n').font.size = Pt(fontsize)
-            p.add_run(Output_Product_Ingredients_name + '\n').font.size = Pt(fontsize)
-            p.add_run(Our_Product_serving_size + '\n').font.size = Pt(fontsize)
-            p.add_run(Output_Production_date + '\n').font.size = Pt(fontsize)
-            p.add_run(Output_Expire_date + '\n').font.size = Pt(fontsize)
-            p.add_run(Out_Product_place).font.size = Pt(fontsize)
-            p.alignment = 2
-    document.save('temp_word/'+Chinese_Name+'-'+product_weight_number+product_weight + '.docx')
-    #cannot get the number of page of the document Reference: https://stackoverflow.com/questions/24889845/number-of-pages-in-word-document
-    #https: // stackoverflow.com / questions / 36193159 / page - number - python - docx
-    wdFormatPDF = 17
-    in_file = os.path.abspath('temp_word/'+Chinese_Name+'-'+product_weight_number+product_weight + '.docx')
-    out_file = os.path.abspath('Out_put/'+Chinese_Name+'-'+product_weight_number+product_weight + '.pdf')
-    word = win32com.client.Dispatch('Word.Application')
-    #word = comtypes.client.CreateObject('Word.Application') 这个不好使了
-    doc = word.Documents.Open(in_file)
-    doc.SaveAs(out_file, FileFormat=wdFormatPDF)
-    doc.Close()
-    word.Quit()
-    get_fist_page_of_pdf(out_file)
+
+
 
 
 def add_Ingredients_to_dictionary(Chinese_Name,list):
@@ -187,5 +215,5 @@ for col in ws.rows:
         print(expire_time)
         print(Chinese_ProductPlace)
         rownumber=get_row_number(col[6].value,Chinese_name_to_row_number_dictionary)
-        write2docx(5,rownumber, Chinese_Name, Ingredients_name_list, product_weight_number,
+        write2html(5,rownumber, Chinese_Name, Ingredients_name_list, product_weight_number,
                    product_weight, product_time, expire_time, Chinese_ProductPlace)
