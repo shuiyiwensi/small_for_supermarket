@@ -244,5 +244,11 @@ with open('input_excel/input.csv', 'r',encoding="utf-16") as csvfile:
         print(expire_time)
         print(Chinese_ProductPlace)
         rownumber=get_row_number(int(row[6]),Chinese_name_to_row_number_dictionary)
+
+        if not os.path.exists(os.path.abspath('temp_word/')):
+            os.makedirs(os.path.abspath('temp_word/'))
+        if not os.path.exists(os.path.abspath('Out_put/')):
+            os.makedirs(os.path.abspath('Out_put/'))
+
         write2html(4,5,rownumber, Chinese_Name, Ingredients_name_list, product_weight_number,
                    product_weight, product_time, expire_time, Chinese_ProductPlace)
