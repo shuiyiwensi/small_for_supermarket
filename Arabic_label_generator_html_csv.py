@@ -250,6 +250,5 @@ with open('input_excel/input.csv', 'r',encoding="utf-16") as csvfile:
         if not os.path.exists(os.path.abspath('Out_put/')):
             os.makedirs(os.path.abspath('Out_put/'))
 
-        # function2
         write2html(4,5,rownumber, Chinese_Name, Ingredients_name_list, product_weight_number,
                    product_weight, product_time, expire_time, Chinese_ProductPlace)
