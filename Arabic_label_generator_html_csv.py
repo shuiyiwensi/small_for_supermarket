@@ -244,6 +244,5 @@ with open('input_excel/input.csv', 'r',encoding="utf-16") as csvfile:
         print(expire_time)
         print(Chinese_ProductPlace)
         rownumber=get_row_number(int(row[6]),Chinese_name_to_row_number_dictionary)
-
         write2html(4,5,rownumber, Chinese_Name, Ingredients_name_list, product_weight_number,
                    product_weight, product_time, expire_time, Chinese_ProductPlace)
