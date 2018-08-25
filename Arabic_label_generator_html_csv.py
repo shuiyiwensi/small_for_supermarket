@@ -125,7 +125,7 @@ def generate_html(senctence, margins_size):
 
 def write2html(Ingredients_length_in_one_row, Ingredients_length_in_one_col, Chinese_Name,Ingredients_name_list, product_weight_number, product_weight, product_time, expire_time, Chinese_ProductPlace):
     stringlength = 80
-    fontsize = 3
+    fontsize = 5
     margins_size = 0.1
     row_num = Ingredients_length_in_one_col
     col_num = Ingredients_length_in_one_row
@@ -141,6 +141,7 @@ def write2html(Ingredients_length_in_one_row, Ingredients_length_in_one_col, Chi
     The_serving_size = 'حجم الحصة: '  # serving size
     Product_date = 'تاريخ الإنتاج: '  # 生产日期
     expire_date = 'تاريخ انتهاء الصلاحية: '  # 过期日期
+    expire_date = 'تاريخ الانتهاء:'
     Output_Product_name = The_name + Arabic_Name
     Output_Product_Ingredients_name = The_Ingredients_name
     for n in range(len(Arabic_Ingredients_name_list)):
